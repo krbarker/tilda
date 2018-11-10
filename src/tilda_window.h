@@ -33,7 +33,6 @@ enum pull_action {
 };
 
 typedef struct tilda_window_ tilda_window;
-typedef struct tilda_search_ tilda_search;
 
 enum tilda_animation_state {
     STATE_UP,
@@ -94,19 +93,6 @@ struct tilda_window_
      * This stores the ID of the event source which handles size updates.
      */
     guint size_update_event_source;
-};
-
-struct tilda_search_
-{
-    GtkWidget *search_box;
-    GtkWidget *entry_search;
-    GtkWidget *button_next;
-    GtkWidget *button_prev;
-    GtkWidget *check_match_case;
-    GtkWidget *check_regex;
-    GtkWidget *label_search_end;
-    /* Stores the result of the last search, if FALSE the last search did not find a match. */
-    gboolean is_search_result;
 };
 
 enum notebook_tab_positions { NB_TOP, NB_BOTTOM, NB_LEFT, NB_RIGHT, NB_HIDDEN };
