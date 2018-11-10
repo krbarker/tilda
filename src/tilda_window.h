@@ -89,6 +89,11 @@ struct tilda_window_
 
     enum pull_action last_action;
     gint64 last_action_time;
+
+    /**
+     * This stores the ID of the event source which handles size updates.
+     */
+    guint size_update_event_source;
 };
 
 struct tilda_search_
