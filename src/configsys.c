@@ -76,8 +76,6 @@ static cfg_opt_t config_opts[] = {
 
     /* ints */
     CFG_INT("lines", 5000, CFGF_NONE),
-    CFG_INT("max_width", 600, CFGF_NONE),
-    CFG_INT("max_height", 150, CFGF_NONE),
     CFG_INT("x_pos", 0, CFGF_NONE),
     CFG_INT("y_pos", 0, CFGF_NONE),
     CFG_INT("tab_pos", 0, CFGF_NONE),
@@ -133,6 +131,10 @@ static cfg_opt_t config_opts[] = {
     CFG_INT("cursor_green", 0xffff, CFGF_NONE),
     CFG_INT("cursor_blue", 0xffff, CFGF_NONE),
 
+    /* floats */
+    CFG_FLOAT ("width_percentage", 100, CFGF_NONE),
+    CFG_FLOAT ("height_percentage", 100, CFGF_NONE),
+
     /* booleans */
     CFG_BOOL("scroll_history_infinite", FALSE, CFGF_NONE),
     CFG_BOOL("scroll_on_output", FALSE, CFGF_NONE),
@@ -170,7 +172,14 @@ static cfg_opt_t config_opts[] = {
     /* Whether to show the full tab title as a tooltip */
     CFG_BOOL("show_title_tooltip", FALSE, CFGF_NONE),
 
-    /* Deprecated tilda options */
+    /**
+     * Deprecated tilda options. These options be commented out in the
+     * configuration file and will not be initialized with default values
+     * if the option is missing in the config file.
+     **/
+    CFG_INT("max_width", 0, CFGF_NODEFAULT),
+    CFG_INT("max_height", 0, CFGF_NODEFAULT),
+
     CFG_STR("image", NULL, CFGF_NODEFAULT),
 
     CFG_INT("show_on_monitor_number", 0, CFGF_NODEFAULT),
@@ -206,7 +215,10 @@ static cfg_opt_t config_opts[] = {
 
 static gboolean compare_config_versions (const gchar *config1, const gchar *config2) G_GNUC_UNUSED;
 
-void remove_deprecated_config_options(const gchar *const *deprecated_config_options, guint size);
+static void invoke_deprecation_function(const gchar *const *deprecated_config_options,
+                                        guint size);
+
+static void remove_deprecated_config_options(const gchar *const *deprecated_config_options, guint size);
 
 /* Note: set config_file to NULL to just free the
  * data structures, and not write out the state to
@@ -422,7 +434,7 @@ gint config_init (const gchar *config_file)
         }
 	}
 
-    /* Deprecate old config settings
+    /* Deprecate old config settings.
      * This is a lame work around until we get a permanent solution to
      * libconfuse lacking for this functionality
      */
@@ -435,15 +447,111 @@ gint config_init (const gchar *config_file)
                                                       "scroll_background",
                                                       "use_image",
                                                       "min_width",
-                                                      "min_height"
+                                                      "min_height",
+                                                      "max_width",
+                                                      "max_height"
     };
-    remove_deprecated_config_options(deprecated_tilda_config_options, G_N_ELEMENTS(deprecated_tilda_config_options));
+
+    invoke_deprecation_function (deprecated_tilda_config_options,
+                                 G_N_ELEMENTS(deprecated_tilda_config_options));
+
+    remove_deprecated_config_options(deprecated_tilda_config_options,
+                                     G_N_ELEMENTS(deprecated_tilda_config_options));
 
     #ifndef NO_THREADSAFE
         g_mutex_init(&mutex);
     #endif
 
 	return ret;
+}
+
+static GdkMonitor *config_get_configured_monitor ()
+{
+    int x_pos = config_getint ("x_pos");
+    int y_pos = config_getint ("y_pos");
+
+    GdkDisplay *display = gdk_display_get_default ();
+
+    return gdk_display_get_monitor_at_point (display,
+                                             x_pos,
+                                             y_pos);
+}
+
+void config_get_configured_window_size (GdkRectangle *rectangle)
+{
+    gdouble relative_width = config_getdouble ("width_percentage");
+    gdouble relative_height = config_getdouble ("height_percentage");
+
+    GdkMonitor *monitor = config_get_configured_monitor ();
+
+    GdkRectangle workarea;
+    gdk_monitor_get_workarea (monitor, &workarea);
+
+    rectangle->width = percentage_to_pixels (relative_width, workarea.width);
+    rectangle->height = percentage_to_pixels (relative_height, workarea.height);
+}
+
+static void config_get_configured_percentage (gdouble *width_percentage,
+                                              gdouble *height_percentage)
+{
+    int windowWidth = config_getint ("max_width");
+    int windowHeight = config_getint ("max_height");
+
+    GdkMonitor *monitor = config_get_configured_monitor ();
+
+    GdkRectangle workarea;
+    gdk_monitor_get_workarea (monitor, &workarea);
+
+    if (width_percentage) {
+        *width_percentage = pixels_to_percentage (workarea.width, windowWidth);
+    }
+
+    if (height_percentage) {
+        *height_percentage = pixels_to_percentage (workarea.height, windowHeight);
+    }
+}
+
+static void print_migration_info (const gchar *old_option_name,
+                                  const gchar *new_option_name)
+{
+    g_info ("Migrated deprecated value in option '%s' to '%s'.", old_option_name, new_option_name);
+}
+
+void invoke_deprecation_function (const gchar *const *deprecated_config_options,
+                                  guint size)
+{
+    for (guint i = 0; i < size; i++)
+    {
+        const gchar *const *option_name = deprecated_config_options[i];
+
+        /* This will still return the option even if its
+         * commented out in the config file, so we perform the extra check
+         * using `cfg_opt_size` below to determine if the option has a valid
+         * value. We do this to ensure that we only execute the migration
+         * code once. */
+        cfg_opt_t *option = cfg_getopt (tc, option_name);
+
+        if (option == NULL || cfg_opt_size (option) == 0) {
+            continue;
+        }
+
+        gdouble width_percentage;
+        gdouble height_percentage;
+
+        config_get_configured_percentage (&width_percentage,
+                                          &height_percentage);
+
+        if (strncmp(option_name, "max_width", sizeof("max_width")) == 0)
+        {
+            print_migration_info (option_name, "width_percentage");
+            config_setdouble ("width_percentage", width_percentage);
+        }
+        if (strncmp(option_name, "max_height", sizeof("max_height")) == 0)
+        {
+            print_migration_info (option_name, "height_percentage");
+            config_setdouble ("height_percentage", height_percentage);
+        }
+    }
 }
 
 void remove_deprecated_config_options(const gchar *const *deprecated_config_options, guint size) {

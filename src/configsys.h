@@ -18,8 +18,22 @@
 #define CONFIGSYS_H
 
 #include <glib.h>
+#include <gtk/gtk.h>
 
 #define DEFAULT_WORD_CHARS  "-A-Za-z0-9,./?%&#:_"
+
+/**
+ * Computes the size of pixels relative to max_pixels and
+ * returns them as a fraction of 100.
+ */
+#define pixels_to_percentage(max_pixels, pixels) \
+    (((gdouble) pixels) / ((gdouble) max_pixels) * 100.0)
+
+/**
+ * Computes the absolute number of pixels given a ratio and a size.
+ */
+#define percentage_to_pixels(ratio, size) \
+    (gint) (((ratio) / 100) * (size))
 
 /* Initialize and free the config system's private variables */
 gint config_init (const gchar *config_file);
@@ -43,6 +57,15 @@ gboolean config_getbool    (const gchar *key);
 glong    config_getnint    (const gchar *key, const guint idx);
 gdouble  config_getdouble  (const gchar *key);
 gdouble  config_getndouble (const gchar *key, const guint idx);
+
+/**
+ * This function uses the configured relative ratio of the window size and
+ * applies it to the current workarea size to compute the desired absolute
+ * size in pixels.
+ *
+ * @param rectangle A GdkRectangle with the configured window size in pixes.
+ */
+void config_get_configured_window_size (GdkRectangle *rectangle);
 
 #endif /* CONFIGSYS_H */
 
