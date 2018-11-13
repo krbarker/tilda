@@ -484,10 +484,14 @@ void config_get_configured_window_size (GdkRectangle *rectangle)
     gdouble relative_width = config_getdouble ("width_percentage");
     gdouble relative_height = config_getdouble ("height_percentage");
 
+    g_debug ("configured percentage values: width_percentage: %lf, height_percentage: %lf", relative_width, relative_height);
+
     GdkMonitor *monitor = config_get_configured_monitor ();
 
     GdkRectangle workarea;
     gdk_monitor_get_workarea (monitor, &workarea);
+
+    g_debug ("workarea dimensions: width: %d, height: %d", workarea.width, workarea.height);
 
     rectangle->width = percentage_to_pixels (relative_width, workarea.width);
     rectangle->height = percentage_to_pixels (relative_height, workarea.height);

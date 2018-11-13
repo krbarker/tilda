@@ -999,6 +999,10 @@ gboolean tilda_window_init (const gchar *config_file, const gint instance, tilda
     gint width = rectangle.width;
     gint height = rectangle.height;
 
+    if (width == 0 || height == 0) {
+        g_warning ("wrong values for configured width or height. Width: %d, Height: %d.", width, height);
+    }
+
     gtk_window_set_default_size (GTK_WINDOW(tw->window),
                                  width,
                                  height);
