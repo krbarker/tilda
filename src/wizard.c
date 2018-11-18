@@ -887,7 +887,7 @@ static void spin_height_percentage_value_changed_cb (GtkWidget *spin_height_perc
     const gdouble height_percentage = gtk_spin_button_get_value (GTK_SPIN_BUTTON(spin_height_percentage));
     const gint height_pixels = percentage_to_pixels (get_max_height(), height_percentage);
 
-    config_setdouble ("height_percentage", height_percentage);
+    config_setint ("height_percentage", GLONG_FROM_DOUBLE (height_percentage));
 
     set_spin_value_while_blocking_callback (GTK_SPIN_BUTTON(spin_height_pixels),
                                             &spin_height_pixels_value_changed_cb,
@@ -921,7 +921,7 @@ static void spin_height_pixels_value_changed_cb (GtkWidget *spin_height_pixels,
     const gint height_pixels = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(spin_height_pixels));
     const gdouble height_percentage = pixels_to_percentage (get_max_height(), height_pixels);
 
-    config_setdouble ("height_percentage", height_percentage);
+    config_setint ("height_percentage", GLONG_FROM_DOUBLE (height_percentage));
 
     set_spin_value_while_blocking_callback (GTK_SPIN_BUTTON(spin_height_percentage),
                                             &spin_height_percentage_value_changed_cb,
@@ -955,7 +955,7 @@ static void spin_width_percentage_value_changed_cb (GtkWidget *spin_width_percen
     const gdouble width_percentage = gtk_spin_button_get_value (GTK_SPIN_BUTTON(spin_width_percentage));
     const gint width_pixels = percentage_to_pixels (get_max_width(), width_percentage);
 
-    config_setdouble ("width_percentage", width_percentage);
+    config_setint ("width_percentage", GLONG_FROM_DOUBLE(width_percentage));
 
     set_spin_value_while_blocking_callback (GTK_SPIN_BUTTON(spin_width_pixels),
                                             &spin_width_pixels_value_changed_cb,
@@ -988,7 +988,7 @@ static void spin_width_pixels_value_changed_cb (GtkWidget *spin_width_pixels, ti
     const gint width_pixels = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(spin_width_pixels));
     const gdouble width_percentage = pixels_to_percentage (get_max_width(), width_pixels);
 
-    config_setdouble ("width_percentage", width_percentage);
+    config_setint ("width_percentage", GLONG_FROM_DOUBLE(width_percentage));
 
     set_spin_value_while_blocking_callback (GTK_SPIN_BUTTON(spin_width_percentage),
                                             &spin_width_percentage_value_changed_cb,
@@ -1735,13 +1735,15 @@ static void initialize_geometry_spinners(tilda_window *tw) {
     guint height = tilda_rectangle.height;
 
     SPIN_BUTTON_SET_RANGE("spin_height_percentage", 0, 100);
-    SPIN_BUTTON_SET_VALUE ("spin_height_percentage", config_getdouble("height_percentage"));
+    SPIN_BUTTON_SET_VALUE ("spin_height_percentage",
+                           GLONG_TO_DOUBLE (config_getint("height_percentage")));
     SPIN_BUTTON_SET_RANGE("spin_height_pixels", 0, monitor_height);
     SPIN_BUTTON_SET_VALUE("spin_height_pixels", height);
 
     /* Update range and value of width spinners */
     SPIN_BUTTON_SET_RANGE("spin_width_percentage", 0, 100);
-    SPIN_BUTTON_SET_VALUE ("spin_width_percentage", config_getdouble("width_percentage"));
+    SPIN_BUTTON_SET_VALUE ("spin_width_percentage",
+                           GLONG_TO_DOUBLE (config_getint("width_percentage")));
     SPIN_BUTTON_SET_RANGE("spin_width_pixels", 0, monitor_width);
     SPIN_BUTTON_SET_VALUE("spin_width_pixels", width);
 

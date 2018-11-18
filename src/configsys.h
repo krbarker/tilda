@@ -35,6 +35,17 @@
 #define percentage_to_pixels(ratio, size) \
     (gint) (((ratio) / 100) * (size))
 
+/**
+ * Macro to convert a long value to a double by scaling it
+ * with G_MAXINT.
+ */
+#define GLONG_TO_DOUBLE(value) ((value) / (double) G_MAXINT)
+
+/**
+ * Macro to convert a double to a long value by scaling it with G_MAXINT.
+ */
+#define GLONG_FROM_DOUBLE(value) ((long) ((value) * G_MAXINT + 0.5))
+
 /* Initialize and free the config system's private variables */
 gint config_init (const gchar *config_file);
 gint config_free (const gchar *config_file);
@@ -43,15 +54,15 @@ gint config_free (const gchar *config_file);
 gint config_write (const gchar *config_file);
 
 /* Set values in the config system */
-gint config_setint     (const gchar *key, const gint val);
+gint config_setint     (const gchar *key, const glong val);
 gint config_setstr     (const gchar *key, const gchar *val);
 gint config_setbool    (const gchar *key, const gboolean val);
-gint config_setnint    (const gchar *key, const gint val, const guint idx);
+gint config_setnint    (const gchar *key, const glong val, const guint idx);
 gint config_setdouble  (const gchar *key, const gdouble val);
 gint config_setndouble (const gchar *key, const gdouble vat, const guint idx);
 
 /* Get values from the config system */
-gint     config_getint     (const gchar *key);
+glong     config_getint     (const gchar *key);
 gchar*   config_getstr     (const gchar *key);
 gboolean config_getbool    (const gchar *key);
 glong    config_getnint    (const gchar *key, const guint idx);

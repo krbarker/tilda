@@ -131,9 +131,11 @@ static cfg_opt_t config_opts[] = {
     CFG_INT("cursor_green", 0xffff, CFGF_NONE),
     CFG_INT("cursor_blue", 0xffff, CFGF_NONE),
 
-    /* floats */
-    CFG_FLOAT ("width_percentage", 100, CFGF_NONE),
-    CFG_FLOAT ("height_percentage", 100, CFGF_NONE),
+    /* floats, libconfuse has a bug with floats on non english systems,
+     * see: https://github.com/martinh/libconfuse/issues/119, so we
+     * need to emulate floats by scaling values to  a long value. */
+    CFG_INT ("width_percentage", G_MAXINT, CFGF_NONE),
+    CFG_INT ("height_percentage", G_MAXINT, CFGF_NONE),
 
     /* booleans */
     CFG_BOOL("scroll_history_infinite", FALSE, CFGF_NONE),
@@ -235,7 +237,7 @@ gint config_free (const gchar *config_file)
 	return ret;
 }
 
-gint config_setint (const gchar *key, const gint val)
+gint config_setint (const gchar *key, const glong val)
 {
 	config_mutex_lock ();
 	cfg_setint (tc, key, val);
@@ -244,7 +246,7 @@ gint config_setint (const gchar *key, const gint val)
 	return 0;
 }
 
-gint config_setnint(const gchar *key, const gint val, const guint idx)
+gint config_setnint(const gchar *key, const glong val, const guint idx)
 {
 	config_mutex_lock ();
 	cfg_setnint (tc, key, val, idx);
@@ -287,9 +289,9 @@ gint config_setbool(const gchar *key, const gboolean val)
 	return 0;
 }
 
-gint config_getint (const gchar *key)
+glong config_getint (const gchar *key)
 {
-	gint temp;
+	glong temp;
 
 	config_mutex_lock ();
 	temp = cfg_getint (tc, key);
@@ -481,8 +483,8 @@ static GdkMonitor *config_get_configured_monitor ()
 
 void config_get_configured_window_size (GdkRectangle *rectangle)
 {
-    gdouble relative_width = config_getdouble ("width_percentage");
-    gdouble relative_height = config_getdouble ("height_percentage");
+    gdouble relative_width = GLONG_TO_DOUBLE (config_getint ("width_percentage"));
+    gdouble relative_height = GLONG_TO_DOUBLE (config_getint ("height_percentage"));
 
     g_debug ("configured percentage values: width_percentage: %lf, height_percentage: %lf", relative_width, relative_height);
 
@@ -550,12 +552,12 @@ void invoke_deprecation_function (const gchar *const *deprecated_config_options,
         if (strncmp(option_name, "max_width", sizeof("max_width")) == 0)
         {
             print_migration_info (option_name, "width_percentage");
-            config_setdouble ("width_percentage", width_percentage);
+            config_setint ("width_percentage", GLONG_FROM_DOUBLE (width_percentage));
         }
         if (strncmp(option_name, "max_height", sizeof("max_height")) == 0)
         {
             print_migration_info (option_name, "height_percentage");
-            config_setdouble ("height_percentage", height_percentage);
+            config_setint ("height_percentage", GLONG_FROM_DOUBLE (height_percentage));
         }
     }
 }
