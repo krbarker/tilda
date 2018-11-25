@@ -1296,9 +1296,17 @@ static gboolean update_tilda_window_size (gpointer user_data)
     gboolean centered_horizontally = config_getbool ("centered_horizontally");
     gboolean centered_vertically = config_getbool ("centered_vertically");
 
-    if (centered_horizontally || centered_vertically) {
+    if (centered_horizontally) {
         pos_x = tilda_window_find_centering_coordinate (tw, WIDTH);
+        config_setint ("x_pos", pos_x);
+        pos_y = (gint) config_getint ("y_pos");
+        gtk_window_move (GTK_WINDOW (tw->window), pos_x, pos_y);
+    }
+
+    if (centered_vertically) {
         pos_y = tilda_window_find_centering_coordinate (tw, HEIGHT);
+        config_setint ("y_pos", pos_y);
+        pos_x = (gint) config_getint ("x_pos");
         gtk_window_move (GTK_WINDOW (tw->window), pos_x, pos_y);
     }
 
