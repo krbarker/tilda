@@ -483,8 +483,8 @@ static GdkMonitor *config_get_configured_monitor ()
 
 void config_get_configured_window_size (GdkRectangle *rectangle)
 {
-    gdouble relative_width = GLONG_TO_DOUBLE (config_getint ("width_percentage"));
-    gdouble relative_height = GLONG_TO_DOUBLE (config_getint ("height_percentage"));
+    gdouble relative_width = GLONG_TO_DOUBLE (config_getint ("width_percentage") * 100);
+    gdouble relative_height = GLONG_TO_DOUBLE (config_getint ("height_percentage") * 100);
 
     g_debug ("configured percentage values: width_percentage: %lf, height_percentage: %lf", relative_width, relative_height);
 
@@ -552,12 +552,12 @@ void invoke_deprecation_function (const gchar *const *deprecated_config_options,
         if (strncmp(option_name, "max_width", sizeof("max_width")) == 0)
         {
             print_migration_info (option_name, "width_percentage");
-            config_setint ("width_percentage", GLONG_FROM_DOUBLE (width_percentage));
+            config_setint ("width_percentage", GLONG_FROM_DOUBLE (width_percentage / 100));
         }
         if (strncmp(option_name, "max_height", sizeof("max_height")) == 0)
         {
             print_migration_info (option_name, "height_percentage");
-            config_setint ("height_percentage", GLONG_FROM_DOUBLE (height_percentage));
+            config_setint ("height_percentage", GLONG_FROM_DOUBLE (height_percentage / 100));
         }
     }
 }
