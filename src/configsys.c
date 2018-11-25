@@ -483,8 +483,8 @@ static GdkMonitor *config_get_configured_monitor ()
 
 void config_get_configured_window_size (GdkRectangle *rectangle)
 {
-    gdouble relative_width = GLONG_TO_DOUBLE (config_getint ("width_percentage") * 100);
-    gdouble relative_height = GLONG_TO_DOUBLE (config_getint ("height_percentage") * 100);
+    gdouble relative_width = GLONG_TO_DOUBLE (config_getint ("width_percentage")) * 100;
+    gdouble relative_height = GLONG_TO_DOUBLE (config_getint ("height_percentage")) * 100;
 
     g_debug ("configured percentage values: width_percentage: %lf, height_percentage: %lf", relative_width, relative_height);
 
